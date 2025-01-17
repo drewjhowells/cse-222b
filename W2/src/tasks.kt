@@ -13,7 +13,9 @@ enum class TestResult {
 //      int2 must be greater than int1
 //      aString must be exactly 4 characters long
 fun task0(aBool: Boolean, int1: Int, int2: Int, aString: String): TestResult {
-    return TestResult.SUCCESS
+    if (aBool && int1 >= 0 && int2 > int1 && aString.length == 4)
+        return TestResult.SUCCESS
+    return TestResult.INVALID_INPUT
 }
 
 // Task 1
