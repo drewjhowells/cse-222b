@@ -1,4 +1,5 @@
 import kotlin.random.Random
+import kotlin.time.times
 
 enum class TestResult {
     SUCCESS,
@@ -24,13 +25,13 @@ fun task0(aBool: Boolean, int1: Int, int2: Int, aString: String): TestResult {
 // If the string is null, return 0
 // If the string is not null, return the length of the string
 fun task1(aString: String?): Int {
-    return -1
+    return aString?.length ?: 0
 }
 
 // Task 2
 // Convert the input string into an integer. If the string cannot be converted into an integer, return  null
 fun task2(aString: String): Int? {
-    return Int.MAX_VALUE
+    return aString.toIntOrNull()
 }
 
 
@@ -51,32 +52,38 @@ fun task2(aString: String): Int? {
 typealias task3Func = (Int, Int) -> Int
 fun task3(): List<task3Func> {
     return listOf(fun (lhs: Int, rhs: Int): Int {
-        return 0
+        return lhs + rhs
     },fun (lhs: Int, rhs: Int): Int {
-        return 0
+        return lhs * rhs
     },fun (lhs: Int, rhs: Int): Int {
-        return 0
+        return lhs compareTo(rhs)
     },fun (lhs: Int, rhs: Int): Int {
-        return 0
+        return if (lhs % 2 == 1 && rhs % 2 == 1) {
+            -1
+        } else if (lhs % 2 == 0 && rhs % 2 == 0) {
+            1
+        } else {
+            0
+        }
     })
 }
 
 // Task 4
 // Using the built-in map function, convert each integer into a string
 fun task4(input: List<Int>): List<String> {
-    return listOf()
+    return input.map { it.toString() }
 }
 
 // Task 5
 // Using the built-in filter method, remove all odd values from the array
 fun task5(input: List<Int>): List<Int> {
-    return listOf()
+    return input.filter { it % 2 == 0 }
 }
 
 // Task 6
 // Using the built-in reduce method, return the sum of the input array
 fun task6(input: List<Int>): Int {
-    return -1
+    return input.reduce { sum, num -> sum + num}
 }
 
 // Task 7
@@ -84,7 +91,19 @@ fun task6(input: List<Int>): Int {
 //
 // Note: Both the sublists or the integers can be null
 fun task7(input: List<List<Int?>?>): Int {
-    return 0
+    var totalNull : Int = 0
+    for (arr in input) {
+        if (arr == null) {
+            totalNull += 1
+        } else {
+            for (num in arr) {
+                if (num == null) {
+                    totalNull += 1
+                }
+            }
+        }
+    }
+    return totalNull
 }
 
 // Task 8
@@ -93,7 +112,11 @@ fun task7(input: List<List<Int?>?>): Int {
 //
 // Hint: https://kotlinlang.org/docs/ranges.html
 fun task8(rows: Int, columns: Int, max: Int): List<List<Int>> {
-    return listOf()
+    return List(rows) {
+        List(columns) {
+            Random.nextInt(0, max)
+        }
+    }
 }
 
 // Task 9
@@ -103,5 +126,5 @@ fun task8(rows: Int, columns: Int, max: Int): List<List<Int>> {
 //
 // Hint: List has a function called .average()
 fun task9(data: List<List<Int>>): List<Double> {
-    return listOf()
+    return data.map { list -> list.average()}
 }
