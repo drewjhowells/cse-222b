@@ -17,26 +17,20 @@ import kotlin.math.exp
 //
 //  Add the classes and structs here:
 
-open class MedicationContainer(name:String, expirationDate: Date) {
-    var id: Int
-    companion object {
-        private var currentId = 0
-    }
-    init {
-        id = ++currentId // Increment the ID for each new instance
-    }
-    val isExpired: Boolean = expirationDate.before(futureDate(0))
-    val name:String = name
-    val expirationDate: Date = expirationDate
+open class MedicationContainer(name:String, date: Date) {
+    var id = UUID.randomUUID().toString()
+    val name = name
+    val expirationDate = date
+    val isExpired: Boolean
+        get() = Date() >= expirationDate
 
     override fun toString(): String {
-        return if (this is LiquidMedicationContainer) {
-            "Liquid : $id"
+        if (this is LiquidMedicationContainer) {
+            return "Liquid: ${this.id}"
         } else if (this is TabletMedicationContainer) {
-            "Tablet $id"
-        } else {
-            super.toString()
+            return "Tablet: ${this.id}"
         }
+        return "Generic: ${this.id}"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -107,7 +101,7 @@ fun task0(): Pair<MedicationContainer, MedicationContainer> {
 //
 //  Return a liquid medication that has expired, and a tablet medication that has not expired
 fun task1(): Pair<LiquidMedicationContainer, TabletMedicationContainer>? {
-    val aLiquidMedicationContainer = LiquidMedicationContainer("med1", Date(2000, 1, 1), 1.0, 1, "ml")
+    val aLiquidMedicationContainer = LiquidMedicationContainer("med1", futureDate(-1), 1.0, 1, "ml")
     val aTabletContainer = TabletMedicationContainer("med2", futureDate(500), 1, 1.0, "mg")
     return Pair(aLiquidMedicationContainer, aTabletContainer)
 }
@@ -145,7 +139,7 @@ fun task3(int1: Int, int2: Int): Any? {
     if (int1 <= int2) {
         return int1..int2
     } else {
-        return listOf(int1..int2).reversed()
+        return (int1 downTo int2).toList()
     }
 }
 
@@ -157,7 +151,7 @@ fun task3(int1: Int, int2: Int): Any? {
 fun task4(int1: Int, int2: Int): Int {
     if (task3(int1, int2) is ClosedRange<*>) {
         return 1
-    } else if (task3(int1, int2) is Array<*>) {
+    } else if (task3(int1, int2) is List<*>) {
         return 2
     } else {
         return 0
@@ -227,7 +221,9 @@ fun task6(anyArray: List<Any?>): List<Double> {
 //      Tablet: 5
 //
 fun task7(): Pair<LiquidMedicationContainer, TabletMedicationContainer>? {
-    return null
+    val aLiquidMedicationContainer = LiquidMedicationContainer("med1", futureDate(100), 1.0, 1, "ml")
+    val aTabletContainer = TabletMedicationContainer("med2", futureDate(500), 1, 1.0, "mg")
+    return Pair(aLiquidMedicationContainer, aTabletContainer)
 }
 
 //  Task 8
