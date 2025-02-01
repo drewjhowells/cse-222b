@@ -20,6 +20,7 @@
 //  !!!!!!!!
 
 import java.util.*
+import kotlin.math.PI
 import kotlin.math.pow
 
 //  Task 0 Assignment
@@ -62,15 +63,28 @@ class PharmaceuticalStockTracker {
     var inStockMedications = mutableMapOf<String, MutableSet<MedicationContainer>>()
     val count: Int
         get() {
-            return 0
+            var size = 0
+            for (key in inStockMedications.keys) {
+                size += inStockMedications[key]?.size ?: 0
+            }
+            return size
         }
 
     fun count(ndcPackageCode: String): Int {
-        return 0
+        return inStockMedications[ndcPackageCode]?.size ?: 0
     }
 
     fun addContainer(container: MedicationContainer): Boolean {
-        return false
+        if (!isFormattedAsNDCCode(container.ndcPackageCode)) {
+            return false
+        }
+        if (container.ndcPackageCode in inStockMedications.keys) {
+            inStockMedications[container.ndcPackageCode]?.add(container)
+            return true
+        } else {
+            inStockMedications[container.ndcPackageCode] = mutableSetOf(container)
+            return true
+        }
     }
 }
 
@@ -131,7 +145,11 @@ fun task0(): Pair<MedicationContainer, MedicationContainer> {
 //  Create a function extension on PharmaceuticalStockTracker that
 //  will remove all expired medications
 //
-fun PharmaceuticalStockTracker.removeExpired() {}
+fun PharmaceuticalStockTracker.removeExpired() {
+    for ((key, medications) in inStockMedications) {
+        medications.removeIf { it.isExpired }
+    }
+}
 
 fun task1(): PharmaceuticalStockTracker {
     return PharmaceuticalStockTracker()
@@ -154,7 +172,7 @@ fun task1(): PharmaceuticalStockTracker {
 
 fun isFormattedAsNDCCode(code: String): Boolean {
     // Replace the following line with your code
-    return false
+    return """\d{5}-\d{4}-\d{2}""".toRegex().matches(code)
 }
 
 fun task2(code: String): Boolean {
@@ -190,6 +208,20 @@ enum class AddMessage {
 }
 
 fun PharmaceuticalStockTracker.addContainers(expectedNdcPackageCode: String, containersToAdd: Set<MedicationContainer>): AddMessage {
+    if (containersToAdd.isEmpty()) {
+        return AddMessage.EMPTY_CONTAINER_SET
+    } else {
+        for (container in containersToAdd) {
+            if (!isFormattedAsNDCCode(container.ndcPackageCode))
+                return AddMessage.NDC_CODE_FORMAT_ERROR
+            if (container.ndcPackageCode != expectedNdcPackageCode) {
+                return AddMessage.MIXED_NDC_CODES
+            }
+        }
+    }
+    for (container in containersToAdd) {
+        addContainer(container)
+    }
     return AddMessage.SUCCESS
 }
 
@@ -209,7 +241,16 @@ enum class StockMessage {
 }
 
 fun PharmaceuticalStockTracker.currentStock(of: String): Pair<StockMessage, List<MedicationContainer>> {
-    return Pair(StockMessage.SUCCESS, listOf())
+    if (!isFormattedAsNDCCode(of)) {
+        return Pair(StockMessage.NDC_CODE_FORMAT_ERROR, listOf())
+    }
+    if (
+        (this.inStockMedications[of]?.isEmpty() == true) ||
+        (of !in this.inStockMedications.keys) ||
+        (this.inStockMedications[of] == null)) {
+        return Pair(StockMessage.NO_INVENTORY, listOf())
+    }
+    return Pair(StockMessage.SUCCESS, this.inStockMedications[of]?.toList() ?: listOf())
 }
 
 fun task4(): PharmaceuticalStockTracker{
@@ -232,7 +273,25 @@ enum class SellMessage {
 }
 
 fun PharmaceuticalStockTracker.sellContainers(count: Int, ndcPackageCode: String): Pair<SellMessage, List<MedicationContainer>> {
-    return Pair(SellMessage.SUCCESS, listOf())
+    if (!isFormattedAsNDCCode(ndcPackageCode)) {
+        return Pair(SellMessage.NDC_CODE_FORMAT_ERROR, listOf())
+    } else if (count == 0) {
+        return Pair(SellMessage.INVALID_COUNT, listOf())
+    } else if (
+        (this.inStockMedications[ndcPackageCode]?.isEmpty() == true) ||
+        (ndcPackageCode !in this.inStockMedications.keys) ||
+        (this.inStockMedications[ndcPackageCode] == null)) {
+        return Pair(SellMessage.NO_INVENTORY, listOf())
+    } else if ((this.inStockMedications[ndcPackageCode]?.size ?: 0) < count) {
+        return Pair(SellMessage.NOT_ENOUGH_INVENTORY, listOf())
+    } else {
+        var containersSold = this.inStockMedications[ndcPackageCode]?.take(count) ?: listOf()
+        this.inStockMedications[ndcPackageCode]?.removeAll(containersSold.toSet())
+        if (this.inStockMedications[ndcPackageCode]?.isEmpty() == true) {
+            this.inStockMedications.remove(ndcPackageCode)
+        }
+        return Pair(SellMessage.SUCCESS, containersSold)
+    }
 }
 
 fun task5(): PharmaceuticalStockTracker {
@@ -247,7 +306,7 @@ fun task5(): PharmaceuticalStockTracker {
 //      { 1: 1, 2: 5, 3: 1 }
 
 fun task6(numbers: List<Int>): Map<Int, Int> {
-    return mapOf()
+    return numbers.groupingBy { it }.eachCount()
 }
 
 //  Task 7
@@ -255,12 +314,26 @@ fun task6(numbers: List<Int>): Map<Int, Int> {
 //  When objects are put into a set, uniqueness is evaluated based on the "hashCode" and "equals" methods
 //  The following PersonRecord object has an idNumber as its only attribute
 //  Override the necessary methods to ensure that uniqueness of the PersonRecord is based on the idNumber, not the object itself
-class PersonRecord(var idNumber: String) {}
+class PersonRecord(var idNumber: String) {
+    override fun hashCode(): Int {
+        return idNumber.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return hashCode() == other.hashCode()
+    }
+}
 
 // Task 7.1
 // Return a list of 5 PersonRecord objects, each with a unique idNumber
 fun task7(): Set<PersonRecord> {
-    return setOf()
+    return setOf(
+        PersonRecord("1"),
+        PersonRecord("2"),
+        PersonRecord("3"),
+        PersonRecord("4"),
+        PersonRecord("5")
+    )
 }
 
 //  Task 8
@@ -293,9 +366,21 @@ fun getArea(s: Shape): Double {
 //      - Circle
 //      - Triangle
 //      - Rectangle
-class Circle(private val radius: Double) {}
-class Triangle(private val base: Double, private val height: Double) {}
-class Rectangle(private val width: Double, private val height: Double) {}
+class Circle (private val radius: Double) : Shape {
+    override fun area(): Double {
+        return radius * radius * PI
+    }
+}
+class Triangle(private val base: Double, private val height: Double) : Shape{
+    override fun area(): Double {
+        return base * height / 2
+    }
+}
+class Rectangle(private val width: Double, private val height: Double) : Shape {
+    override fun area(): Double {
+        return width * height
+    }
+}
 
 fun task8(s: Shape): Double {
     return getArea(s)
@@ -307,5 +392,5 @@ fun task8(s: Shape): Double {
 //  Given an array of numbers, eliminate all duplicates in the most efficient way possible
 
 fun task9(numbers: List<Int>): List<Int> {
-    return numbers
+    return numbers.distinct()
 }
